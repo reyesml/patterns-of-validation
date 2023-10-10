@@ -3,7 +3,7 @@
 
 Suppose we've implemented a `Gateway` class that we want to secure. Every method in the gateway should perform some sort of authorization/validation before servicing the request.
 
-One technique we could take is to structure our `Gateway` like this:
+One approach we could take is to structure our `Gateway` like this:
 
 ```ruby
 class Gateway
