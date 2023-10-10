@@ -1,0 +1,9 @@
+source "https://rubygems.org"
+
+ruby '2.6.10'
+
+# Gems required for debugging
+gem 'debase'
+gem 'ruby-debug-ide'
+
+gem 'rspec'
