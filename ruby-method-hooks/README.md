@@ -1,8 +1,7 @@
 # Repetitive Validation
 
-The idea is to make defensive coding the default.
 
-For example, we've implemented a `Gateway` class that we want to secure. Every method in the gateway should perform some sort of authorization/validation before servicing the request.
+Suppose we've implemented a `Gateway` class that we want to secure. Every method in the gateway should perform some sort of authorization/validation before servicing the request.
 
 One technique we could take is to structure our `Gateway` like this:
 
@@ -70,7 +69,8 @@ class Gateway
   before_all :authorize
 end
 ```
+The idea is to make defensive coding the default.
 
-The magic happens within the `Hooks` module. The `Hooks` module adds a new method, `before_all` that allows us to register a callback on every instance method within our `Gateway`. Now developers can add new methods to the `Gateway` class and not worry about forgetting to safeguard them. They are secure by default.
+The magic happens within the `Hooks` module. The `Hooks` module adds a new method, `before_all` that allows us to register a callback on every instance method within our `Gateway`. Now developers can add new methods to the `Gateway` class and not worry about forgetting to safeguard them.
 
 _Disclaimer: The examples in this repository are pretty hacky, and shouldn't be used in production code. If you're looking to add production-worthy hooks to your codebase, I'd refer you to the Rails `ActiveModel` library._
