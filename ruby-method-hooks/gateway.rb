@@ -2,6 +2,13 @@
 require_relative 'lib/hooks'
 
 class Gateway
+  include Hooks
+
+  before_all { |*args| authorize(*args) }
+  before_all(except: [:list]) { |*args| validate_id(*args) }
+
+  after_all { puts 'After!' }
+
   def read(id:)
     puts "read #{id}"
   end
@@ -18,21 +25,12 @@ class Gateway
     puts 'listing all'
   end
 
-  private
-
-  def validate_id(id:, **)
+  def self.validate_id(id:, **)
     validity = (id.is_a? Numeric) ? 'valid' : 'invalid'
     puts validity
   end
 
-  def authorize(*)
+  def self.authorize(*)
     puts 'authorized'
   end
-
-  # This isn't desirable, but the hooks have to be registered
-  # after all of the class methods are defined. Otherwise we can't
-  # determine which methods should be included in "all".
-  include Hooks
-  before_all :validate_id, except: [:list]
-  before_all :authorize
 end

@@ -1,49 +1,39 @@
 module Hooks
   def self.included(base)
-    base.extend ClassMethods
-    base.register_base base
+    base.extend(ClassMethods)
   end
 
   module ClassMethods
-    def register_base(base)
-      @base = base
+
+    def before_all(except: [], &block)
+      @before_all_hooks ||= []
+      @before_all_hooks << { block: block, except: except }
     end
 
-    def before_all(func, except: [])
-      base = @base
-      method_overrides = Module.new do
-        (base.instance_methods(false) - except).each do |name|
-          define_method(name) do |*args, &block|
-            send(func, *args, &block)
-            super(*args, &block)
-          end
-        end
-      end
-      prepend method_overrides
+    def after_all(except: [], &block)
+      @after_all_hooks ||= []
+      @after_all_hooks << { block: block, except: except }
     end
 
-    def before(func, *targets)
-      method_overrides = Module.new do
-        targets.each do |name|
-          define_method(name) do |*args, &block|
-            send(func, *args, &block)
-            super(*args, &block)
-          end
-        end
-      end
-      prepend method_overrides
-    end
+    def method_added(method_name)
+      return if @adding
 
-    def after(func, *targets)
-      method_overrides = Module.new do
-        targets.each do |name|
-          define_method(name) do |*args, &block|
-            super(*args, &block)
-            send(func, *args, &block)
-          end
+      @adding = true
+      original_method = instance_method(method_name)
+      define_method(method_name) do |*args, &block|
+        before_all_hooks = self.class.instance_variable_get(:@before_all_hooks) || []
+        before_all_hooks.each do |hook|
+          hook[:block].call(*args) unless hook[:except].include? method_name
+        end
+
+        original_method.bind(self).call(*args, &block)
+
+        after_all_hooks = self.class.instance_variable_get(:@after_all_hooks) || []
+        after_all_hooks.each do |hook|
+          hook[:block].call(*args) unless hook[:except].include? method_name
         end
       end
-      prepend method_overrides
+      @adding = false
     end
   end
 end
