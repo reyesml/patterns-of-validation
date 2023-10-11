@@ -4,7 +4,7 @@ require_relative 'lib/hooks'
 class Gateway
   include Hooks
 
-  before_all { |*args| authorize(*args) }
+  before_all { authorize }
   before_all(except: [:list]) { |*args| validate_id(*args) }
 
   after_all { puts 'After!' }
@@ -30,7 +30,7 @@ class Gateway
     puts validity
   end
 
-  def self.authorize(*)
+  def self.authorize
     puts 'authorized'
   end
 end
