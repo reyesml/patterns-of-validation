@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+set -e
+
+# We don't want clients to "source" our script.
+# doing so would allow them to bypass our middleware,
+# and we can't have that.
+if ! [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  >&2 echo "sourcing my-module is not allowed"
+  exit 1
+fi
+
+### Module methods ###
+
+function get_record_count() {
+  echo "get_record_count executing"
+}
+
+function list_all_records() {
+  echo "list_all_records executing. Params: $1"
+}
+
+### Middleware plumbing ###
+
+# validate is a function we want to run before
+# any method on the module is called.
+function validate() {
+  echo "validating params: $*"
+}
+
+# main intercepts all method calls, runs our "middleware",
+# then delegates control to the specified module method.
+function main() {
+  method=$1; shift
+  args=$@
+  method_exists "$method"
+  validate "$args"
+  eval "$method $args"
+}
+
+# method_exists aborts the script if the provided
+# method does not exist within this module.
+function method_exists() {
+  method=$1
+  module_methods=$(declare -F)
+  module_methods=${module_methods//declare -f/}
+  # The matching on this is sloppy (partial matches pass) but good enough for a PoC ;)
+  echo "$module_methods" | grep "$method" > /dev/null || {
+    >&2 echo "$method does not exist."
+    exit 1
+  }
+}
+
+main "$@"
