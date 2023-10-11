@@ -8,28 +8,28 @@ One approach we could take is to structure our `Gateway` like this:
 ```ruby
 class Gateway
   def read(id:)
-    authorize
+    self.class.authorize
     puts "read #{id}"
   end
 
   def write(id:, body:)
-    authorize
+    self.class.authorize
     puts "write #{id}: #{body}"
   end
 
   def delete(id:)
-    authorize
+    self.class.authorize
     puts "delete #{id}"
   end
 
   def list
-    authorize
+    self.class.authorize
     puts 'listing all'
   end
 
   private
 
-  def authorize
+  def self.authorize
     puts 'authorized'
   end
 end
@@ -43,6 +43,9 @@ We can reduce the likelyhood of a developer forgetting to safeguard their method
 require_relative 'lib/hooks'
 
 class Gateway
+  include Hooks
+  before_all { authorize }
+
   def read(id:)
     puts "read #{id}"
   end
@@ -61,16 +64,12 @@ class Gateway
 
   private
 
-  def authorize(*)
+  def self.authorize
     puts 'authorized'
   end
 
-  include Hooks
-  before_all :authorize
 end
 ```
 The idea is to make defensive coding the default.
 
 The magic happens within the `Hooks` module. The `Hooks` module adds a new method, `before_all` that allows us to register a callback on every instance method within our `Gateway`. Now developers can add new methods to the `Gateway` class and not worry about forgetting to safeguard them.
-
-_Disclaimer: The examples in this repository are pretty hacky, and shouldn't be used in production code. If you're looking to add production-worthy hooks to your codebase, I'd refer you to the Rails `ActiveModel` library._
