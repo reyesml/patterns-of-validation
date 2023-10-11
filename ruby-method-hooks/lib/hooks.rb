@@ -26,12 +26,14 @@ module Hooks
           hook[:block].call(*args) unless hook[:except].include? method_name
         end
 
-        original_method.bind(self).call(*args, &block)
+        result = original_method.bind(self).call(*args, &block)
 
         after_all_hooks = self.class.instance_variable_get(:@after_all_hooks) || []
         after_all_hooks.each do |hook|
           hook[:block].call(*args) unless hook[:except].include? method_name
         end
+
+        result
       end
       @adding = false
     end
